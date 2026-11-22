@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block page_heading %}Ordens de serviço{% endblock %}
+{% block page_subtitle %}Registre solicitações e acompanhe a execução dos serviços.{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <div class="eyebrow">ATENDIMENTO</div>
+    <h1>Ordens de serviço</h1>
+    <p>Registre solicitações e acompanhe a execução dos serviços.</p>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="panel">
+      <h2>Nova ordem</h2>
+      <p class="muted mb-4">Registre uma nova solicitação</p>
+      {% if clients %}
+      <form method="post">
+        <label class="form-label">Cliente *</label>
+        <select name="client_id" class="form-select mb-3" required>
+          <option value="">Selecione</option>
+          {% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <label class="form-label">Título *</label>
+        <input name="title" class="form-control mb-3" required placeholder="Ex.: Manutenção de computador">
+        <label class="form-label">Descrição *</label>
+        <textarea name="description" class="form-control mb-3" rows="3" required></textarea>
+        <div class="row">
+          <div class="col-6">
+            <label class="form-label">Prioridade</label>
+            <select name="priority" class="form-select mb-3"><option>Normal</option><option>Baixa</option><option>Alta</option><option>Urgente</option></select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Prazo</label>
+            <input type="date" name="due_date" class="form-control mb-3">
+          </div>
+        </div>
+        <label class="form-label">Valor do serviço (R$)</label>
+        <input name="total_amount" type="text" inputmode="decimal" class="form-control mb-3" placeholder="Opcional · Ex.: 250,00">
+        <label class="form-label">Técnico responsável</label>
+        <select name="technician_id" class="form-select mb-4">
+          <option value="">Não atribuído</option>
+          {% for t in technicians %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary w-100">＋ Criar ordem</button>
+      </form>
+      {% else %}
+      <div class="empty-box">Cadastre ao menos um cliente antes de abrir uma ordem.</div>
+      <a href="{{ url_for('clients') }}" class="btn btn-primary w-100">Cadastrar cliente</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-xl-8">
+    <div class="panel">
+      <div class="panel-head"><div><h2>Ordens registradas</h2><p>{{ orders|length }} ordem(ns) encontrada(s)</p></div></div>
+      <form class="searchbar mb-3">
+        <input name="q" value="{{ q }}" class="form-control" placeholder="Buscar código, solicitação ou cliente">
+        <select name="status" class="form-select">
+          <option value="">Todos os status</option>
+          {% for s in ['Aberta','Em andamento','Aguardando cliente','Concluída','Cancelada'] %}<option {% if selected_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-light">Filtrar</button>
+      </form>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>ORDEM</th><th>CLIENTE</th><th>STATUS</th><th>DATA</th><th></th></tr></thead>
+          <tbody>
+          {% for o in orders %}
+            <tr>
+              <td><span class="code">{{ o.code }}</span><strong class="d-block">{{ o.title }}</strong></td>
+              <td>{{ o.client.name }}</td>
+              <td><span class="status status-{{ o.status|lower|replace(' ','-') }}">{{ o.status }}</span></td>
+              <td>{{ o.created_at.strftime('%d/%m/%Y') }}</td>
+              <td>
+                <a class="text-link" href="{{ url_for('order_detail',order_id=o.id) }}">Detalhes →</a>
+                <a class="text-link order-finance-link" href="{{ url_for('order_finance',order_id=o.id) }}">Financeiro</a>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="empty">Nenhuma ordem encontrada.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

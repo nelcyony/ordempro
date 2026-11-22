@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block page_heading %}Financeiro da OS{% endblock %}
+{% block page_subtitle %}{{ order.code }} · {{ order.title }}{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <div class="eyebrow">{{ order.client.name }}</div>
+    <h1>Financeiro da ordem</h1>
+    <p>{{ order.code }} · {{ order.title }}</p>
+  </div>
+  <a class="btn btn-light" href="{{ url_for('finance') }}">← Voltar ao financeiro</a>
+</div>
+<div class="finance-summary-cards">
+  <article class="panel"><span class="muted">Valor do serviço</span><strong>{{ summary.total|brl if summary.total is not none else 'Não informado' }}</strong></article>
+  <article class="panel"><span class="muted">Total recebido</span><strong class="green-text">{{ summary.paid|brl }}</strong></article>
+  <article class="panel"><span class="muted">Saldo pendente</span><strong class="orange-text">{{ summary.balance|brl if summary.balance is not none else '—' }}</strong></article>
+  <article class="panel"><span class="muted">Situação</span><strong><span class="finance-status finance-{{ summary.status|lower|replace(' ', '-') }}">{{ summary.status }}</span></strong></article>
+</div>
+<div class="finance-manage-grid">
+  <article class="panel">
+    <h2>Valor do serviço</h2>
+    <p class="muted">Defina ou atualize o valor total desta ordem.</p>
+    <form method="post">
+      <input type="hidden" name="action" value="price">
+      <label class="form-label" for="total_amount">Valor total (R$)</label>
+      <input id="total_amount" name="total_amount" type="text" inputmode="decimal" class="form-control mb-3" value="{{ summary.total if summary.total is not none else '' }}" placeholder="Ex.: 250,00" required>
+      <button class="btn btn-primary" type="submit">Salvar valor</button>
+    </form>
+  </article>
+  <article class="panel">
+    <h2>Registrar pagamento</h2>
+    <p class="muted">Cada lançamento fica salvo no histórico da ordem.</p>
+    {% if summary.balance is not none and summary.balance > 0 %}
+    <form method="post">
+      <input type="hidden" name="action" value="payment">
+      <label class="form-label" for="amount">Valor recebido (R$)</label>
+      <input id="amount" name="amount" type="text" inputmode="decimal" class="form-control mb-3" placeholder="Ex.: 100,00" required>
+      <div class="row">
+        <div class="col-md-6">
+          <label class="form-label" for="paid_at">Data do pagamento</label>
+          <input id="paid_at" name="paid_at" type="date" class="form-control mb-3" value="{{ today }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="method">Forma de pagamento</label>
+          <select id="method" name="method" class="form-select mb-3" required>
+            {% for method in payment_methods %}<option value="{{ method }}">{{ method }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Registrar pagamento</button>
+    </form>
+    {% elif summary.total is none %}
+    <div class="empty-box">Defina o valor total do serviço antes de registrar pagamentos.</div>
+    {% elif summary.total == 0 %}
+    <div class="empty-box">Esta ordem está configurada como sem cobrança.</div>
+    {% else %}
+    <div class="empty-box">O valor total já foi recebido.</div>
+    {% endif %}
+  </article>
+</div>
+<article class="panel payment-history">
+  <div class="panel-head"><div><h2>Histórico de pagamentos</h2><p>Os pagamentos registrados não são editados ou removidos nesta tela.</p></div></div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>DATA</th><th>FORMA DE PAGAMENTO</th><th>VALOR</th></tr></thead>
+      <tbody>
+      {% for payment in order.payments|sort(attribute='paid_at', reverse=true) %}
+        <tr><td>{{ payment.paid_at.strftime('%d/%m/%Y') }}</td><td>{{ payment.method }}</td><td>{{ payment.amount|brl }}</td></tr>
+      {% else %}
+        <tr><td colspan="3" class="empty">Nenhum pagamento lançado para esta ordem.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</article>
+{% endblock %}

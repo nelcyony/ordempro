@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block page_heading %}Configurações{% endblock %}
+{% block page_subtitle %}Atualize os dados da sua conta.{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <div class="eyebrow">CONTA</div>
+    <h1>Configurações</h1>
+    <p>Gerencie seu nome, e-mail e senha de acesso.</p>
+  </div>
+</div>
+<article class="panel settings-panel">
+  <h2>Dados da conta</h2>
+  <form method="post">
+    <label class="form-label" for="name">Nome</label>
+    <input id="name" name="name" class="form-control mb-3" value="{{ user.name }}" required maxlength="120">
+    <label class="form-label" for="email">E-mail</label>
+    <input id="email" name="email" type="email" class="form-control mb-4" value="{{ user.email }}" required maxlength="160">
+    <hr>
+    <h2 class="mt-4">Alterar senha</h2>
+    <p class="muted">Deixe os campos abaixo em branco para manter a senha atual.</p>
+    <label class="form-label" for="current_password">Senha atual</label>
+    <input id="current_password" name="current_password" type="password" class="form-control mb-3" autocomplete="current-password">
+    <label class="form-label" for="new_password">Nova senha</label>
+    <input id="new_password" name="new_password" type="password" class="form-control mb-4" minlength="8" autocomplete="new-password">
+    <button class="btn btn-primary" type="submit">Salvar configurações</button>
+  </form>
+</article>
+{% endblock %}

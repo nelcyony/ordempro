@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block page_heading %}Agenda{% endblock %}
+{% block page_subtitle %}Acompanhe as ordens de serviço pelos prazos definidos.{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <div class="eyebrow">PLANEJAMENTO</div>
+    <h1>Agenda de serviços</h1>
+    <p>Semana de {{ week_start.strftime('%d/%m/%Y') }} a {{ week_end.strftime('%d/%m/%Y') }}</p>
+  </div>
+  <div class="agenda-navigation">
+    <a class="btn btn-light" href="{{ url_for('agenda', semana=previous_week.isoformat()) }}">← Semana anterior</a>
+    <a class="btn btn-light" href="{{ url_for('agenda') }}">Semana atual</a>
+    <a class="btn btn-light" href="{{ url_for('agenda', semana=next_week.isoformat()) }}">Próxima semana →</a>
+  </div>
+</div>
+<div class="agenda-days">
+  {% for day in days %}
+  <article class="panel agenda-day">
+    <h2>{{ ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'][loop.index0] }}</h2>
+    <div class="agenda-date">{{ day.date.strftime('%d/%m/%Y') }}</div>
+    {% for order in day.orders %}
+    <a class="agenda-order" href="{{ url_for('order_detail', order_id=order.id) }}">
+      <strong>{{ order.code }}</strong>
+      <span>{{ order.title }}</span>
+      <small>{{ order.client.name }}{% if order.technician %} · {{ order.technician.name }}{% endif %}</small>
+      <span class="status-pill status-{{ order.status|lower|replace(' ', '-') }}">{{ order.status }}</span>
+    </a>
+    {% else %}
+    <p class="agenda-empty">Sem ordens agendadas</p>
+    {% endfor %}
+  </article>
+  {% endfor %}
+</div>
+<article class="panel unscheduled-panel">
+  <div class="panel-head"><div><h2>Ordens sem prazo definido</h2><p>Até 10 ordens abertas sem data de conclusão</p></div><a class="text-link" href="{{ url_for('orders') }}">Ver ordens →</a></div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>ORDEM</th><th>CLIENTE</th><th>TÉCNICO</th><th>STATUS</th></tr></thead>
+      <tbody>
+      {% for order in unscheduled_orders %}
+        <tr>
+          <td><a class="text-link" href="{{ url_for('order_detail', order_id=order.id) }}">{{ order.code }} · {{ order.title }}</a></td>
+          <td>{{ order.client.name }}</td>
+          <td>{{ order.technician.name if order.technician else 'Não atribuído' }}</td>
+          <td><span class="status-pill status-{{ order.status|lower|replace(' ', '-') }}">{{ order.status }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="empty">Todas as ordens ativas têm prazo definido.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</article>
+{% endblock %}
